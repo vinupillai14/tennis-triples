@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - Tennis Triples</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <style>
+    body { padding: 2rem; background-color: #f8f9fa; }
+    h1 { text-align: center; margin-bottom: 2rem; }
+    .reset-btn { margin-bottom: 2rem; }
+    table { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Admin Dashboard</h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <p class="lead">Current Registered Players: <strong>{{ total_players }}</strong></p>
+
+  <form method="POST" action="{{ url_for('reset') }}?key={{ request.args.get('key') }}">
+    <button type="submit" class="btn btn-danger reset-btn">Reset All Players</button>
+  </form>
+
+  <h4>Recent Cancellations</h4>
+  {% if cancellations %}
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Cancelled At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for name, cancelled_at in cancellations %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ cancelled_at.strftime('%Y-%m-%d %H:%M_
+
