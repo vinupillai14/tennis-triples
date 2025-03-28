@@ -1,0 +1,80 @@
+/* Basic reset and font */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+}
+
+/* Centered container for content with a max width for larger screens */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+/* Headings spacing */
+h1, h2, h3 {
+  margin-bottom: 0.5em;
+}
+
+/* Flash message list (no default bullets) */
+.flashes {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* Flash message styling */
+.flash-message {
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  border-radius: 4px;
+}
+.flash-message.error {
+  background-color: #f8d7da;  /* light red background */
+  color: #721c24;             /* dark red text */
+}
+.flash-message.success {
+  background-color: #d4edda;  /* light green background */
+  color: #155724;             /* dark green text */
+}
+
+/* Form layout: input and buttons on one line (wrap on small screens) */
+.signup-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-bottom: 1em;
+}
+.signup-form input[type="text"] {
+  flex: 1;               /* take available space */
+  min-width: 150px;       /* minimum width for input field */
+  padding: 0.5em;
+  font-size: 1em;
+}
+.signup-form button {
+  padding: 0.5em 1em;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+/* Court allocation styling */
+.court {
+  padding: 0.5em;
+  margin-bottom: 1em;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+}
+.side {
+  margin-left: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* Waiting list styling */
+.waiting-list {
+  margin: 0 0 1em 1.2em;  /* indent the ordered list for clarity */
+}
+.waiting-list li {
+  margin: 0.2em 0;
+}
+
