@@ -1,30 +1,38 @@
 from flask import Flask, render_template, request, redirect, flash, url_for
-import sqlite3
+import psycopg2
+import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Needed for flash messages (use a secure random key in production)
+app.secret_key = 'your_secret_key'
 
-# Initialize SQLite database (create table if it doesn't exist)
-conn = sqlite3.connect('tennis.db', check_same_thread=False, timeout=10)
-cursor = conn.cursor()
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS players (
-    id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE
-)
-''')
-conn.commit()
-conn.close()
+def get_db_connection():
+    conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+    return conn
+
+# Ensure the players table exists
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS players (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE
+        )
+    ''')
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+init_db()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # Open a new database connection for this request
-    conn = sqlite3.connect('tennis.db', check_same_thread=False, timeout=10)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     if request.method == 'POST':
-        player_name = request.form.get('name', '').strip()  # Player's name from form, trimmed
-        action = request.form.get('action')                # Action: "register" or "cancel"
+        player_name = request.form.get('name', '').strip()
+        action = request.form.get('action')
 
         if not player_name:
             flash('Name cannot be empty.', 'error')
@@ -32,10 +40,10 @@ def index():
 
         if action == 'register':
             try:
-                # Insert the new player (will fail if name already exists due to UNIQUE constraint)
-                cursor.execute('INSERT INTO players (name) VALUES (?)', (player_name,))
+                cursor.execute('INSERT INTO players (name) VALUES (%s)', (player_name,))
                 conn.commit()
-            except sqlite3.IntegrityError:
+            except psycopg2.errors.UniqueViolation:
+                conn.rollback()
                 flash(f'Player "{player_name}" is already registered.', 'error')
             else:
                 cursor.execute('SELECT COUNT(*) FROM players')
@@ -48,7 +56,7 @@ def index():
             return redirect(url_for('index'))
 
         elif action == 'cancel':
-            cursor.execute('DELETE FROM players WHERE name = ?', (player_name,))
+            cursor.execute('DELETE FROM players WHERE name = %s', (player_name,))
             if cursor.rowcount == 0:
                 flash(f'No active registration found for "{player_name}".', 'error')
             else:
@@ -58,6 +66,7 @@ def index():
 
     cursor.execute('SELECT name FROM players ORDER BY id')
     all_players = [row[0] for row in cursor.fetchall()]
+    cursor.close()
     conn.close()
 
     main_players = all_players[:18]
@@ -74,4 +83,3 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
