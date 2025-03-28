@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Needed for flash messages (use a secure random key in production)
 
 # Initialize SQLite database (create table if it doesn't exist)
-conn = sqlite3.connect('tennis.db')
+conn = sqlite3.connect('tennis.db', check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS players (
@@ -19,7 +19,7 @@ conn.close()
 @app.route('/', methods=['GET', 'POST'])
 def index():
     # Open a new database connection for this request
-    conn = sqlite3.connect('tennis.db')
+    conn = sqlite3.connect('tennis.db', check_same_thread=False)
     cursor = conn.cursor()
 
     if request.method == 'POST':
