@@ -3,21 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tennis Triples Sign-Up</title>
+  <title>DL Rebel Tennis Triples</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
   <style>
     body { padding: 1rem; background-color: #f8f9fa; }
-    h1 { text-align: center; margin-bottom: 2rem; }
-    .court { border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; background-color: white; }
-    .waiting-list li { list-style-type: decimal; }
+    h1.title {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 2.5rem;
+      color: #0056b3;
+      text-shadow: 1px 1px 2px #ced4da;
+    }
+    .team {
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .waiting-list li,
+    .player-list li {
+      list-style-type: decimal;
+    }
     .form-inline input { margin-right: 0.5rem; margin-bottom: 0.5rem; }
     .empty-slot { color: #adb5bd; font-style: italic; }
+    .section-title {
+      margin-top: 2rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Tennis Triples Registration</h1>
+  <h1 class="title">DL Rebel Tennis Triples</h1>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -39,25 +61,15 @@
   </form>
 
   <div class="row">
-    {% for court in courts %}
+    {% for team in teams %}
     <div class="col-md-4 col-sm-12">
-      <div class="court">
-        <h5>Court {{ loop.index }}</h5>
-        <strong>Side A:</strong>
+      <div class="team">
+        <h5>Team {{ loop.index }}</h5>
         <ul>
-          {% for player in court.side_a %}
-            <li>{{ player }}</li>
+          {% for player in team %}
+            {% if player in promoted_players %}<li>{{ player }} ⭐</li>{% else %}<li>{{ player }}</li>{% endif %}
           {% endfor %}
-          {% for i in range(3 - court.side_a|length) %}
-            <li class="empty-slot">[empty slot]</li>
-          {% endfor %}
-        </ul>
-        <strong>Side B:</strong>
-        <ul>
-          {% for player in court.side_b %}
-            <li>{{ player }}</li>
-          {% endfor %}
-          {% for i in range(3 - court.side_b|length) %}
+          {% for i in range(3 - team|length) %}
             <li class="empty-slot">[empty slot]</li>
           {% endfor %}
         </ul>
@@ -66,12 +78,43 @@
     {% endfor %}
   </div>
 
+  <div class="row">
+    <div class="col-md-6">
+      <div class="section-title">📋 All Registered Players</div>
+      <ul class="player-list">
+        {% for player in all_players %}
+          {% if player in promoted_players %}<li>{{ player }} ⭐</li>{% else %}<li>{{ player }}</li>{% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <div class="section-title">❌ Recent Cancellations</div>
+      {% if cancellations %}
+        <table class="table table-bordered table-sm">
+          <thead class="thead-light">
+            <tr><th>Player</th><th>Cancelled At</th></tr>
+          </thead>
+          <tbody>
+            {% for name, cancelled_at in cancellations %}
+              <tr>
+                <td>{{ name }}</td>
+                <td>{{ cancelled_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-muted">No recent cancellations.</p>
+      {% endif %}
+    </div>
+  </div>
+
   <div class="waiting-list mt-4">
-    <h5>Waiting List</h5>
+    <div class="section-title">⏳ Waiting List</div>
     {% if waiting_players %}
       <ol>
         {% for player in waiting_players %}
-          <li>{{ player }}</li>
+          {% if player in promoted_players %}<li>{{ player }} ⭐</li>{% else %}<li>{{ player }}</li>{% endif %}
         {% endfor %}
       </ol>
     {% else %}
