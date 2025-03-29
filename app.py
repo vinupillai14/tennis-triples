@@ -83,11 +83,12 @@ def index():
     cursor.execute('SELECT name FROM players ORDER BY id')
     all_players = [row[0] for row in cursor.fetchall()]
     cursor.execute('SELECT name, team_number FROM team_assignments')
-    assignments = dict(cursor.fetchall())
+    assignments_raw = cursor.fetchall()
+    assignments = {k.strip().lower(): v for k, v in assignments_raw}
     cursor.execute('SELECT name, cancelled_at FROM cancellations ORDER BY cancelled_at DESC LIMIT 20')
     cancellations = cursor.fetchall()
 
-    assigned_players = [name for name in all_players if assignments.get(name)]
+    assigned_players = [name for name in all_players if assignments.get(name.strip().lower())]
     main_players = assigned_players[:18]
     waiting_players = all_players[18:]
 
@@ -106,9 +107,15 @@ def index():
                     promoted_players.append(name)
 
     cursor.close()
+    teams = [[] for _ in range(6)]
+    for name in main_players:
+        team_num = assignments.get(name.strip().lower())
+        if team_num and 1 <= team_num <= 6:
+            teams[team_num - 1].append(name)
+
     return render_template(
         'index.html',
-        teams=[main_players[i*3:(i+1)*3] for i in range(6)],
+        teams=teams,
         waiting_players=waiting_players,
         all_players=all_players,
         cancellations=cancellations,
@@ -130,21 +137,22 @@ def admin():
             try:
                 assignments = json.loads(data)
                 for name, team in assignments.items():
-                    print(f"Assigning {name} to team {team}")
+                    name_clean = name.strip()
+                    print(f"Assigning {name_clean} to team {team}")
                     if team is None:
                         cursor.execute('''
                             INSERT INTO team_assignments (name, team_number)
                             VALUES (%s, NULL)
                             ON CONFLICT (name)
                             DO UPDATE SET team_number = NULL
-                        ''', (name,))
+                        ''', (name_clean,))
                     else:
                         cursor.execute('''
                             INSERT INTO team_assignments (name, team_number)
                             VALUES (%s, %s)
                             ON CONFLICT (name)
                             DO UPDATE SET team_number = EXCLUDED.team_number
-                        ''', (name, int(team)))
+                        ''', (name_clean, int(team)))
                 conn.commit()
                 flash('Team assignments updated.', 'success')
             except Exception as e:
